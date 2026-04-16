@@ -10,7 +10,7 @@ use Plack::Util::Accessor qw(issuer audience required_scopes claims_env_key real
 use JSON::MaybeXS qw(encode_json);
 use WWW::Zitadel::OIDC;
 
-our $VERSION = '0.002';
+our $VERSION = '0.011';
 
 sub prepare_app {
     my ($self) = @_;
