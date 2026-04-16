@@ -3,8 +3,6 @@ Revision history for Plack-Middleware-Zitadel
 {{$NEXT}}
 
 0.010     2026-04-16 23:54:26Z
-
-0.001     2026-04-16 21:34:23Z
     - Initial release of Plack::Middleware::Zitadel:
       - Bearer token verification via WWW::Zitadel::OIDC
       - Optional audience verification
