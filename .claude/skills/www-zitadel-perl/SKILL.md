@@ -121,7 +121,7 @@ use ZITADEL v4.11.0+ which includes the PG18 compatibility fix.
 Offline tests:
 
 ```bash
-cd /storage/raid/home/getty/dev/perl/p5-www-zitadel
+cd ../p5-www-zitadel
 prove -lr t
 ```
 
