@@ -1,0 +1,3 @@
+claude: true
+prompt: |
+  Drain the Plack-Middleware-Zitadel karr board. A Plack middleware that validates Bearer tokens against ZITADEL OIDC. Delegate behaviour-relevant code to the plack-middleware-zitadel-worker agent and release audits to plack-middleware-zitadel-release-manager; follow .claude/rules/plack-middleware-zitadel-rules.md. Never release.
