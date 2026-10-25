@@ -1,0 +1,48 @@
+---
+claimed_at: 2026-10-25T05:52:55Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:52:55Z
+created: 2026-10-21T02:23:55Z
+id: 4
+priority: high
+started: 2026-10-25T05:45:50Z
+status: done
+tags:
+- bug
+- api
+title: Die Fehlerantworten halten sich nicht an RFC 6750
+updated: 2026-10-25T05:52:55Z
+---
+
+Die Fehlerantworten halten sich nicht an RFC 6750, an zwei Stellen:
+
+1. Die description geht unescaped in den Challenge-Header:
+
+     sprintf('Bearer realm="%s", error="%s", error_description="%s"', ...)
+
+   Die Description ist der Fehlertext des Verifizierers — im Betrieb die
+   stringifizierte WWW::Zitadel::Error, also Text aus einer fremden Bibliothek bzw. vom
+   Issuer. Ein Anführungszeichen oder ein Zeilenumbruch darin bricht die
+   quoted-string-Struktur des Headers; ein CRLF im Text ist eine Header-Injektion. Die
+   JSON-Variante des gleichen Textes ist harmlos, der Header nicht.
+
+2. Der 403 (insufficient_scope) geht ohne WWW-Authenticate-Header heraus. RFC 6750
+   sieht in der Challenge gerade für diesen Fall das scope-Attribut vor; der Client
+   erfährt so nicht, welche Scopes fehlen.
+
+   Achtung: t/01-auth.t nagelt die heutige Form fest
+   (ok !$missing_res->header('WWW-Authenticate')) — eine Änderung dort ist eine
+   bewusste Änderung an der öffentlichen Antwort, kein Nebeneffekt.
+
+Erledigt, wenn:
+
+- der Header-Text escaped wird (Anführungszeichen und Steuerzeichen; kein CRLF), und
+  ein Test einen Fehlertext mit Anführungszeichen und mit Zeilenumbruch durchspielt,
+- der 403 eine Challenge mit realm und scope-Attribut trägt, wie es die RFC vorsieht,
+  und der bisherige Test entsprechend bewusst angepasst ist,
+- die Fehlercodes invalid_request, invalid_token, insufficient_scope und ihre
+  Bedeutungen unverändert bleiben (das ist der Vertrag mit den Clients),
+- die POD den Challenge-Aufbau beschreibt.
+
+2026-10-25 05:51 Done in 350a46a. Decisions: quote and backslash get a backslash, control chars (CR, LF, tab) become one space, non-printable-ASCII becomes ? (header is bytes); realm escaped the same way; JSON body unchanged. 403 challenge: realm, error, error_description, scope=all required scopes space-separated. Error codes unchanged. The 403 assertion in t/01-auth.t was changed on purpose; hostile-text test was red before. POD section ERROR RESPONSES added.
