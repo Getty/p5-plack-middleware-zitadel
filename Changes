@@ -1,6 +1,8 @@
 Revision history for Plack-Middleware-Zitadel
 
 {{$NEXT}}
+    - Ship a LICENSE file so the distribution builds again
+    - Run the test suite on GitHub Actions
 
 0.010     2026-04-16 23:54:26Z
     - Initial release of Plack::Middleware::Zitadel:
