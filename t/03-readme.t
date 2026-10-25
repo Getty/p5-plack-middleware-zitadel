@@ -8,38 +8,55 @@ use Test::More;
 use HTTP::Request::Common qw(GET);
 use Plack::Test;
 
-# The first code block under "## Usage" in README.md is the first thing a
-# user copies; it has to run as written.
-open my $readme_fh, '<', 'README.md' or die "README.md: $!\n";
-my $readme = do { local $/; <$readme_fh> };
+# The usage examples are the first thing a user copies; they have to run as
+# written.  README.md is not part of the built distribution (dzil generates a
+# plain README), so under `dzil test` only the SYNOPSIS is exercised.
 
-my ($code) = $readme =~ /^## Usage\s+```perl\n(.*?)^```/ms;
-ok defined $code, 'README has a Usage code block' or BAIL_OUT('no Usage block');
+sub slurp {
+    my ($file) = @_;
+    open my $fh, '<', $file or die "$file: $!\n";
+    return do { local $/; <$fh> };
+}
 
-like $code, qr/enable\s+'Plack::Middleware::Zitadel',/,
-    'README enables the existing class';
+my $pod = slurp('lib/Plack/Middleware/Zitadel.pm');
 
-my $wrapped = eval "package Local::Readme; no strict 'vars'; $code; \$wrapped";
-is $@, '', 'README example builds' or diag $code;
-is ref $wrapped, 'CODE', 'README example yields a PSGI app';
+sub check_example {
+    my ($label, $code) = @_;
 
-test_psgi $wrapped, sub {
-    my ($cb) = @_;
-    my $res = $cb->(GET 'http://localhost/');
-    is $res->code, 401, 'README app answers 401 without a token';
-    like $res->header('WWW-Authenticate'), qr/^Bearer realm="api"/,
-        'README app carries the Bearer challenge';
-};
+    ok defined $code, "$label: code block found" or return;
 
-# Every attribute the example passes is documented in the POD.
-my ($enable) = $code =~ /enable\s+'[^']+',(.*?);/s;
-my @attrs = $enable =~ /(\w+)\s*=>/g;
-is_deeply [ sort @attrs ], [qw( audience issuer required_scopes )],
-    'README example uses issuer, audience and required_scopes';
+    like $code, qr/enable\s+'Plack::Middleware::Zitadel',/,
+        "$label: enables the existing class";
 
-open my $pm_fh, '<', 'lib/Plack/Middleware/Zitadel.pm' or die "lib: $!\n";
-my $pod = do { local $/; <$pm_fh> };
-like $pod, qr/^=head2 \Q$_\E$/m, "README attribute $_ is documented"
-    for @attrs;
+    my $wrapped = eval "package Local::Example; no strict 'vars'; $code; \$wrapped";
+    is $@, '', "$label: builds" or diag $code;
+    is ref $wrapped, 'CODE', "$label: yields a PSGI app" or return;
+
+    test_psgi $wrapped, sub {
+        my ($cb) = @_;
+        my $res = $cb->(GET 'http://localhost/');
+        is $res->code, 401, "$label: answers 401 without a token";
+        like $res->header('WWW-Authenticate'), qr/^Bearer realm="api"/,
+            "$label: carries the Bearer challenge";
+    };
+
+    # Every attribute the example passes is documented in the POD.
+    my ($enable) = $code =~ /enable\s+'[^']+',(.*?);/s;
+    my @attrs = $enable =~ /(\w+)\s*=>/g;
+    is_deeply [ sort @attrs ], [qw( audience issuer required_scopes )],
+        "$label: uses issuer, audience and required_scopes";
+    like $pod, qr/^=head2 \Q$_\E$/m, "$label: attribute $_ is documented"
+        for @attrs;
+}
+
+my ($synopsis) = $pod =~ /^=head1 SYNOPSIS\n\n(.*?)^=head1/ms;
+check_example('SYNOPSIS', $synopsis);
+
+SKIP: {
+    skip 'README.md is not in the built distribution', 1 unless -f 'README.md';
+
+    my ($code) = slurp('README.md') =~ /^## Usage\s+```perl\n(.*?)^```/ms;
+    subtest 'README.md Usage' => sub { check_example('README', $code); done_testing };
+}
 
 done_testing;
