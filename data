@@ -1,0 +1,39 @@
+---
+claimed_at: 2026-10-25T05:52:50Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:52:50Z
+created: 2026-10-21T02:23:52Z
+id: 3
+priority: high
+started: 2026-10-25T05:45:46Z
+status: done
+tags:
+- docs
+- api
+title: Das README aktiviert eine Klasse, die es nicht gibt
+updated: 2026-10-25T05:52:50Z
+---
+
+Das README zeigt eine Middleware-Klasse, die es nicht gibt:
+
+  enable 'Plack::Middleware::Zitadel::Auth',
+      issuer => 'https://zitadel.example.com',
+      ...
+
+Die einzige Klasse des Moduls ist Plack::Middleware::Zitadel — die POD sagt es richtig,
+das README nicht. Wer die Anleitung aus dem README übernimmt, bekommt beim Start
+"Unable to load Plack::Middleware::Zitadel::Auth". Das ist der erste Kontaktpunkt mit
+der Distribution.
+
+Erledigt, wenn:
+
+- das README die existierende Klasse Plack::Middleware::Zitadel aktiviert,
+- alle Beispiel-Attribute des README-Blocks auch in der POD beschrieben sind
+  (issuer, audience, required_scopes),
+- ein Test den README-Aufbau abbildet (builder + enable + ein PSGI-Handler), damit
+  ein Klassen-Tippfehler in der Anleitung auffällt,
+- ein Changes-Eintrag unter {{$NEXT}} die reparierte Anleitung nennt, wenn die Version
+  angehoben wird.
+
+2026-10-25 05:51 Done in 614aa38 and 6915b17. t/03-readme.t runs the README Usage block and the POD SYNOPSIS (builder, enable, PSGI app, 401 without token, attributes documented). Red before the fix (class load failure). README.md is not in the built dist, so that part skips under dzil test; SYNOPSIS always runs.
