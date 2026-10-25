@@ -137,7 +137,7 @@ sub _forbidden {
 
 __END__
 
-=synopsis
+=head1 SYNOPSIS
 
     use Plack::Builder;
 
@@ -151,7 +151,7 @@ __END__
         $app;
     };
 
-=description
+=head1 DESCRIPTION
 
 Validates incoming Bearer tokens using L<WWW::Zitadel::OIDC> and injects
 decoded claims into the PSGI environment.
@@ -162,31 +162,39 @@ token in C<$env->{'zitadel.token'}>.
 On failure, responds with C<401> or C<403> and a JSON body plus a
 C<WWW-Authenticate: Bearer> header per RFC 6750.
 
-=attr issuer
+=head1 ATTRIBUTES
+
+=head2 issuer
 
 OIDC issuer URL. Required unless C<oidc> is provided.
 
-=attr audience
+=head2 audience
 
-Optional audience string passed to C<verify_token>.
+Optional audience string passed to C<verify_token>.  An empty string is
+treated as unset.
 
-=attr required_scopes
+=head2 required_scopes
 
 Optional scope requirement as an arrayref or space-separated string.  All
 listed scopes must be present in the token's C<scope> claim.
 
-=attr claims_env_key
+=head2 claims_env_key
 
 PSGI env key under which decoded claims are stored.  Defaults to
-C<zitadel.claims>.
+C<zitadel.claims>.  The raw token is always stored under C<zitadel.token>.
 
-=attr realm
+=head2 realm
 
 Realm value in the C<WWW-Authenticate> response header.  Defaults to C<api>.
 
-=attr oidc
+=head2 oidc
 
 Optional pre-built OIDC object.  Must implement C<verify_token>.  When
 provided, C<issuer> is not required.
+
+=head1 SEE ALSO
+
+L<WWW::Zitadel::OIDC>, L<Plack::Middleware>,
+L<RFC 6750|https://www.rfc-editor.org/rfc/rfc6750>
 
 =cut
