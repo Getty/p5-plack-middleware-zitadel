@@ -1,0 +1,46 @@
+---
+claimed_at: 2026-10-25T05:53:06Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:53:06Z
+created: 2026-10-21T02:24:01Z
+id: 6
+priority: medium
+started: 2026-10-25T05:46:00Z
+status: done
+tags:
+- docs
+- example
+title: Die Beispiele sind auf den eigenen Betrieb festgenagelt
+updated: 2026-10-25T05:53:06Z
+---
+
+Die Beispiele sind auf den eigenen Betrieb festgenagelt — in einer CPAN-Distribution
+gehören interne Hostnamen und persönliche Pfade nicht hinein:
+
+- examples/deploy-k8s-proxy.sh: KUBECONFIG_PATH zeigt auf
+  /storage/raid/home/getty/avatar/.kube/config (ein persönlicher Pfad auf privatem
+  Storage), und das Skript meldet am Ende
+  "Proxy deployed: https://proxy.avatar.conflict.industries/".
+- examples/k8s/configmap.yaml: ZITADEL_ISSUER ist
+  https://zitadel.avatar.conflict.industries.
+- examples/k8s/httproute.yaml: hostname proxy.avatar.conflict.industries, parentRef
+  cilium-gateway im Namespace kube-system.
+
+Der Rest der Beispiele ist in Ordnung: das Image ghcr.io/your-org/zitadel-auth-proxy
+und UPSTREAM_BASE http://my-app.default.svc.cluster.local:8080 sind Platzhalter, und
+das proxy.psgi ist sauber parametrierbar (ZITADEL_ISSUER, ZITADEL_AUDIENCE,
+ZITADEL_REQUIRED_SCOPES, UPSTREAM_BASE).
+
+Erledigt, wenn:
+
+- die internen Hostnamen durch Platzhalter ersetzt sind (analog zu den beiden anderen
+  Werten), oder per Umgebung eingespielt werden,
+- der Default für KUBECONFIG_PATH entfällt oder auf einen neutralen Wert zeigt
+  (~/.kube/config) und der Nutzer wird im Skript darauf hingewiesen,
+- das Skript keine interne URL mehr ausgibt, sondern den Namespace und den aufrufbaren
+  Gateway-Namen nennt,
+- das README den Ablauf (Werte setzen, Image bauen, Manifeste anpassen, apply) in
+  dieser Reihenfolge beschreibt.
+
+2026-10-25 05:51 Done in 11b9509. Placeholders example.com and my-gateway; KUBECONFIG_PATH defaults to ~/.kube/config with a hint; script prints namespace and gateway name; README lists values, image, manifests, apply. No test (example material); bash -n ok, grep for internal names empty.
