@@ -27,6 +27,8 @@ use Plack::Middleware::Zitadel;
         push @{ $self->{calls} }, { token => $token, args => { %args } };
 
         die "bad token\n" if $token eq 'bad';
+        die qq{say "no" \\ to\r\nX-Injected: yes\ttab\x{e9}\n}
+            if $token eq 'hostile';
         die "   leading and trailing space   \n\n"
             if $token eq 'whitespace-error';
 
@@ -218,8 +220,11 @@ subtest 'required_scopes as arrayref' => sub {
             'body contains insufficient_scope';
         is $data->{error_description}, 'required scopes are missing',
             'description surfaces';
-        ok !$missing_res->header('WWW-Authenticate'),
-            '403 response does not include WWW-Authenticate';
+        is $missing_res->header('WWW-Authenticate'),
+            'Bearer realm="api", error="insufficient_scope", '
+            . 'error_description="required scopes are missing", '
+            . 'scope="openid email"',
+            '403 response carries the RFC 6750 challenge with the scope';
 
         my $scoped = GET 'http://localhost/';
         $scoped->header(Authorization => 'Bearer scoped');
@@ -314,6 +319,59 @@ subtest 'WWW-Authenticate header format' => sub {
         like $header,
             qr/^Bearer realm="api", error="invalid_request", error_description="missing Authorization header"$/,
             'full RFC 6750 challenge format with defaults';
+    };
+};
+
+subtest 'error text is escaped in the challenge header' => sub {
+    my $app = builder {
+        enable 'Plack::Middleware::Zitadel', oidc => Local::OIDC->new;
+        $echo_app;
+    };
+
+    my $res = $app->({ HTTP_AUTHORIZATION => 'Bearer hostile' });
+    is $res->[0], 401, 'hostile error text -> 401';
+
+    my @challenges = map { $res->[1][ $_ * 2 + 1 ] }
+        grep { lc $res->[1][ $_ * 2 ] eq 'www-authenticate' }
+        0 .. $#{ $res->[1] } / 2;
+    is scalar @challenges, 1, 'exactly one challenge header';
+    my $header = $challenges[0];
+
+    unlike $header, qr/[\x00-\x08\x0a-\x1f\x7f]/,
+        'no control characters (no CR, no LF) in the header';
+    unlike $header, qr/[^\x20-\x7e]/, 'only printable ASCII in the header';
+    like $header, qr/error_description="say \\"no\\" \\\\ to X-Injected: yes tab\?"\z/,
+        'quote and backslash escaped, controls flattened';
+    ok !grep({ lc $_ eq 'x-injected' } @{ $res->[1] }),
+        'no injected header';
+
+    my $body = decode_json($res->[2][0]);
+    is $body->{error_description}, qq{say "no" \\ to\r\nX-Injected: yes\ttab\x{e9}},
+        'JSON body keeps the original text';
+};
+
+subtest '403 challenge carries realm and scope' => sub {
+    my $app = builder {
+        enable 'Plack::Middleware::Zitadel',
+            oidc            => Local::OIDC->new,
+            realm           => 'admin',
+            required_scopes => 'openid profile email';
+        $echo_app;
+    };
+
+    test_psgi $app, sub {
+        my ($cb) = @_;
+        my $req = GET 'http://localhost/';
+        $req->header(Authorization => 'Bearer good');
+        my $res = $cb->($req);
+        is $res->code, 403, 'insufficient scope -> 403';
+        is $res->header('WWW-Authenticate'),
+            'Bearer realm="admin", error="insufficient_scope", '
+            . 'error_description="required scopes are missing", '
+            . 'scope="openid profile email"',
+            'realm and the full required scope list in the challenge';
+        is decode_json($res->decoded_content)->{error}, 'insufficient_scope',
+            'error code unchanged in the body';
     };
 };
 

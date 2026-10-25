@@ -54,7 +54,7 @@ sub call {
 
     my @required = $self->_required_scope_list;
     if (@required && !$self->_has_required_scopes($claims, \@required)) {
-        return $self->_forbidden('insufficient_scope', 'required scopes are missing');
+        return $self->_forbidden('insufficient_scope', 'required scopes are missing', @required);
     }
 
     $env->{ $self->claims_env_key } = $claims;
@@ -104,31 +104,54 @@ sub _has_required_scopes {
     return 1;
 }
 
-sub _unauthorized {
-    my ($self, $error, $description) = @_;
+sub _quote {
+    my ($self, $text) = @_;
+
+    $text = '' unless defined $text;
+    $text =~ s/[\x00-\x1f\x7f]+/ /g;
+    $text =~ s/[^\x20-\x7e]/?/g;
+    $text =~ s/(["\\])/\\$1/g;
+
+    return $text;
+}
+
+sub _challenge {
+    my ($self, $error, $description, @scope) = @_;
+
     my $header = sprintf(
         'Bearer realm="%s", error="%s", error_description="%s"',
-        $self->realm,
+        $self->_quote($self->realm),
         $error,
-        $description,
+        $self->_quote($description),
     );
+    $header .= sprintf(', scope="%s"', $self->_quote(join ' ', @scope))
+        if @scope;
+
+    return $header;
+}
+
+sub _unauthorized {
+    my ($self, $error, $description) = @_;
 
     return [
         401,
         [
             'Content-Type' => 'application/json',
-            'WWW-Authenticate' => $header,
+            'WWW-Authenticate' => $self->_challenge($error, $description),
         ],
         [ encode_json({ error => $error, error_description => $description }) ],
     ];
 }
 
 sub _forbidden {
-    my ($self, $error, $description) = @_;
+    my ($self, $error, $description, @scope) = @_;
 
     return [
         403,
-        [ 'Content-Type' => 'application/json' ],
+        [
+            'Content-Type' => 'application/json',
+            'WWW-Authenticate' => $self->_challenge($error, $description, @scope),
+        ],
         [ encode_json({ error => $error, error_description => $description }) ],
     ];
 }
@@ -161,6 +184,32 @@ token in C<$env->{'zitadel.token'}>.
 
 On failure, responds with C<401> or C<403> and a JSON body plus a
 C<WWW-Authenticate: Bearer> header per RFC 6750.
+
+=head1 ERROR RESPONSES
+
+Every failure answers with C<Content-Type: application/json> and a body
+C<{"error": ..., "error_description": ...}>.  The status line and the
+C<WWW-Authenticate> challenge follow RFC 6750:
+
+    401  invalid_request     no Authorization header, or not a Bearer token
+    401  invalid_token       verify_token died; the description is its message
+    403  insufficient_scope  a required scope is missing from the token
+
+The challenge is built as
+
+    Bearer realm="api", error="invalid_token", error_description="..."
+
+and the 403 additionally lists the required scopes, so the client learns what
+to ask for:
+
+    Bearer realm="api", error="insufficient_scope",
+        error_description="required scopes are missing",
+        scope="openid profile"
+
+Text inside the quoted strings is escaped: a double quote or backslash gets a
+backslash, control characters (including CR and LF) become a single space and
+anything outside printable ASCII becomes C<?>.  The JSON body carries the
+original text unchanged.
 
 =head1 ATTRIBUTES
 

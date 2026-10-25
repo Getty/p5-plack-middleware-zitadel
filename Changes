@@ -7,6 +7,12 @@ Revision history for Plack-Middleware-Zitadel
       DESCRIPTION, ATTRIBUTES and SEE ALSO
     - Repair the README usage example: it enables Plack::Middleware::Zitadel
       instead of a class that does not exist, and a test now runs it
+    - Escape the error text in the WWW-Authenticate challenge: quotes and
+      backslashes are backslash-escaped, line breaks and other control
+      characters can no longer reach the header (the JSON body is unchanged)
+    - Answer 403 insufficient_scope with a WWW-Authenticate challenge that
+      carries the realm and the required scopes in the scope attribute, as
+      RFC 6750 describes; before, the 403 had no such header
 
 0.010     2026-04-16 23:54:26Z
     - Initial release of Plack::Middleware::Zitadel:
