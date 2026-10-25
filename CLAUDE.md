@@ -18,8 +18,8 @@ table, the attributes, the env contract and the scope check live in skill
 ## Delegation
 
 Delegate behavior-relevant code to the right agent instead of touching it yourself —
-the principle and the lane boundaries are in
-`.claude/rules/plack-middleware-zitadel-rules.md`.
+the delegation lock is a shared house rule (skilletor bundle `getty-cpan-dist@getty`); the
+lane boundaries are in `.claude/rules/plack-middleware-zitadel-rules.md`.
 
 | Task | Agent |
 |---|---|
