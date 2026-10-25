@@ -65,11 +65,21 @@ K8s manifests are provided under `examples/k8s/`:
 - `service.yaml`
 - `httproute.yaml`
 
-Deploy:
+All hostnames, the image and the gateway in the manifests are placeholders.
+In this order:
 
-```bash
-examples/deploy-k8s-proxy.sh
-```
+1. Set your values in `examples/k8s/configmap.yaml`: `ZITADEL_ISSUER`
+   (and optionally `ZITADEL_AUDIENCE`, `ZITADEL_REQUIRED_SCOPES`) and
+   `UPSTREAM_BASE`.
+2. Build and push the image (see Docker above), e.g.
+   `docker build -f examples/Dockerfile -t registry.example.com/zitadel-auth-proxy:1 .`
+3. Adjust the manifests: the `image` in `examples/k8s/deployment.yaml`, and the
+   gateway (`parentRefs`) and `hostnames` in `examples/k8s/httproute.yaml`.
+4. Apply:
 
-Before deploying, set your proxy image in `examples/k8s/deployment.yaml` and
-set `UPSTREAM_BASE` in `examples/k8s/configmap.yaml`.
+   ```bash
+   KUBECONFIG_PATH=~/.kube/config examples/deploy-k8s-proxy.sh
+   ```
+
+   `KUBECONFIG_PATH` defaults to `~/.kube/config`, `NAMESPACE` to `zitadel`.
+   The script prints the namespace and the gateway name the route is attached to.

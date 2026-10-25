@@ -13,6 +13,9 @@ Revision history for Plack-Middleware-Zitadel
     - Answer 403 insufficient_scope with a WWW-Authenticate challenge that
       carries the realm and the required scopes in the scope attribute, as
       RFC 6750 describes; before, the 403 had no such header
+    - Make the deployment examples neutral: placeholder hostnames, issuer and
+      gateway, kubeconfig defaults to ~/.kube/config, the deploy script names
+      namespace and gateway instead of a URL, and the README lists the steps
 
 0.010     2026-04-16 23:54:26Z
     - Initial release of Plack::Middleware::Zitadel:

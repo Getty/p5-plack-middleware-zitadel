@@ -5,11 +5,11 @@ metadata:
   namespace: zitadel
 spec:
   parentRefs:
-    - name: cilium-gateway
-      namespace: kube-system
+    - name: my-gateway
+      namespace: gateway-system
       sectionName: https
   hostnames:
-    - proxy.avatar.conflict.industries
+    - proxy.example.com
   rules:
     - matches:
         - path:

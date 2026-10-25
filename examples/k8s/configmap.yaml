@@ -4,7 +4,7 @@ metadata:
   name: zitadel-auth-proxy
   namespace: zitadel
 data:
-  ZITADEL_ISSUER: https://zitadel.avatar.conflict.industries
+  ZITADEL_ISSUER: https://zitadel.example.com
   ZITADEL_AUDIENCE: ""
   ZITADEL_REQUIRED_SCOPES: ""
   UPSTREAM_BASE: http://my-app.default.svc.cluster.local:8080
