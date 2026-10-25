@@ -1,0 +1,44 @@
+---
+claimed_at: 2026-10-25T05:52:44Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:52:44Z
+created: 2026-10-21T02:23:48Z
+id: 2
+priority: high
+started: 2026-10-25T05:45:41Z
+status: done
+tags:
+- docs
+- pod
+title: 'Die POD ist kaputt: die Überschriften stehen in Kleinschreibung'
+updated: 2026-10-25T05:52:44Z
+---
+
+Die POD des Moduls ist syntaktisch kaputt: alle Überschriften stehen in Kleinschreibung.
+
+  =synopsis
+  =description
+  =attr issuer
+  ...
+
+podchecker meldet dafür 8 Fehler ("Unknown directive: synopsis") und "does not contain
+any pod commands". Praktische Folgen:
+
+- die Formatter (pod2text, perldoc, MetaCPAN) zeigen die Anleitung nicht an,
+- der von [@Author::GETTY] ergänzte Autortest xt/author/pod-syntax.t (Test::Pod,
+  all_pod_files_ok) ist rot — damit ist auch die Release-Strecke blockiert,
+- die Syntax folgt nicht der Hausnorm; die Überschriften anderer Getty-Dists heißen
+  =head1 SYNOPSIS, =head1 DESCRIPTION, =head1 ATTRIBUTES.
+
+Erledigt, wenn:
+
+- alle POD-Überschriften in der Hausform geschrieben sind (=head1 NAME,
+  =head1 SYNOPSIS, =head1 DESCRIPTION, =head1 ATTRIBUTES, =head1 SEE ALSO),
+- podchecker lib/Plack/Middleware/Zitadel.pm fehlerfrei durchläuft,
+- die Beispiele in der POD dem tatsächlichen Verhalten entsprechen (der Attribute-Block
+  beschreibt issuer, audience, required_scopes, claims_env_key, realm, oidc),
+- ein Changes-Eintrag unter {{$NEXT}} die reparierte Dokumentation nennt, wenn die
+  Version angehoben wird.
+
+2026-10-25 05:51 Done in 0d95fa3. POD headings now plain head1 SYNOPSIS, DESCRIPTION, ATTRIBUTES, SEE ALSO with head2 per attribute, as the card says. NAME is not hand-written: the bundle generates it from the ABSTRACT line (built POD checked, single NAME). Correction: the lower-case headings were the bundle shortcut commands and the built POD was already valid; podchecker on the source was the failing view. t/02-pod.t was red 12 of 12 before. podchecker clean, dzil test green.
