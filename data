@@ -1,0 +1,42 @@
+---
+claimed_at: 2026-10-25T05:53:01Z
+claimed_by: offen-2610
+class: standard
+completed: 2026-10-25T05:53:01Z
+created: 2026-10-21T02:23:58Z
+id: 5
+priority: medium
+started: 2026-10-25T05:45:55Z
+status: done
+tags:
+- test
+- deps
+title: Die Tests ziehen den Geschwister-Checkout auf @INC
+updated: 2026-10-25T05:53:01Z
+---
+
+Beide Testdateien ziehen einen Checkout außerhalb des Repos auf @INC:
+
+  my $path = "$FindBin::Bin/../../p5-www-zitadel/lib";
+  require lib if -d $path;
+  lib->import($path) if -d $path;
+
+Damit hängt das Ergebnis der Testsuite an der Umgebung: steht das Geschwister-Repo
+neben diesem Checkout, gewinnt der lokale Stand (0.002, unveröffentlicht) gegen die
+installierte Version (0.001 vom CPAN); steht es nicht dort, verschwindet der Pfad
+stillschweigend und es wird die installierte Version getestet. Auf der CI (frischer
+Checkout, keine Geschwister) fällt der Block ersatzlos weg — die beiden Wege sind
+damit untestbar ungleich, ohne dass jemand es merkt.
+
+Erledigt, wenn:
+
+- die Testsuite aus einem frischen Checkout heraus mit genau den deklarierten
+  Abhängigkeiten läuft und trotzdem grün ist,
+- ein Wunsch nach dem Geschwister-Stand explizit und abschaltbar ist (z. B. über eine
+  Umgebungsvariable), statt über einen fest verdrahteten Nachbarpfad,
+- t/01-auth.t keinen Code aus dem Geschwister-Checkout voraussetzt (der Local::OIDC-Fake
+  ist die einzige Abhängigkeit, die der Test braucht),
+- die Aussage "prove -lr t/ ist grün" für eine Maschine ohne Nachbar-Checkout genauso
+  gilt wie für eine mit.
+
+2026-10-25 05:51 Done in ef92020. Sibling lib only via PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB; 00-load.t asserts @INC stays clean otherwise (assertion proven red against the old block in a layout with a neighbour dir). prove -lr t/ green offline with and without the variable.
