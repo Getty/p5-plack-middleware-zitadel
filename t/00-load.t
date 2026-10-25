@@ -1,12 +1,19 @@
 use strict;
 use warnings;
 
-use FindBin;
-BEGIN {
-    my $path = "$FindBin::Bin/../../p5-www-zitadel/lib";
-    require lib if -d $path;
-    lib->import($path) if -d $path;
-}
+# Opt in to a sibling WWW::Zitadel checkout with
+#   PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB=/path/to/p5-www-zitadel/lib
+# Without it the suite runs against the installed WWW::Zitadel only.
+use if $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB},
+    lib => $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB};
 
-use Test::More tests => 1;
+use Test::More tests => 2;
+
 use_ok('Plack::Middleware::Zitadel');
+
+SKIP: {
+    skip 'sibling checkout requested explicitly', 1
+        if $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB};
+    ok !( grep { m{/p5-www-zitadel/lib\z} } @INC ),
+        'no sibling checkout on @INC unless asked for';
+}

@@ -1,12 +1,10 @@
 use strict;
 use warnings;
 
-use FindBin;
-BEGIN {
-    my $path = "$FindBin::Bin/../../p5-www-zitadel/lib";
-    require lib if -d $path;
-    lib->import($path) if -d $path;
-}
+# Opt in to a sibling WWW::Zitadel checkout with
+#   PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB=/path/to/p5-www-zitadel/lib
+use if $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB},
+    lib => $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB};
 
 use Test::More;
 use JSON::MaybeXS qw(decode_json encode_json);
