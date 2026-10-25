@@ -21,7 +21,7 @@ my $app = sub {
 };
 
 my $wrapped = builder {
-    enable 'Plack::Middleware::Zitadel::Auth',
+    enable 'Plack::Middleware::Zitadel',
         issuer          => 'https://zitadel.example.com',
         audience        => 'my-api',
         required_scopes => ['openid', 'profile'];
