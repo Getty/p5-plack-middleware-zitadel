@@ -9,7 +9,8 @@
       "getty-perl-release-author-getty@karr",
       "kanban-issues-karr-coordination@karr",
       "kanban-issues-karr-ticket@karr",
-      "perl-release-dist-ini@getty"
+      "perl-release-dist-ini@getty",
+      "zitadel-general@www-zitadel"
     ],
     "bundles": [
       "getty-cpan-dist@getty"
@@ -22,6 +23,10 @@
     },
     "karr": {
       "git": "https://github.com/Getty/karr.git",
+      "ref": "main"
+    },
+    "www-zitadel": {
+      "git": "https://github.com/Getty/p5-www-zitadel.git",
       "ref": "main"
     }
   },
