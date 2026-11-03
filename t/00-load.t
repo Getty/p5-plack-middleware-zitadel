@@ -8,7 +8,7 @@ use warnings;
 use if $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB},
     lib => $ENV{PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB};
 
-use Test::More tests => 2;
+use Test::More;
 
 use_ok('Plack::Middleware::Zitadel');
 
@@ -18,3 +18,5 @@ SKIP: {
     ok !( grep { m{/p5-www-zitadel/lib\z} } @INC ),
         'no sibling checkout on @INC unless asked for';
 }
+
+done_testing;
