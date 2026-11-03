@@ -36,9 +36,10 @@ Work is coordinated on the repo's `karr` board (`karr board`).
 
 ## State of the code
 
-The middleware works and the suite is green (`prove -lr t/`, two files, 10 tests) — but
-`WWW::Zitadel` has to be installed, and the tests currently pull the sibling checkout
-into `@INC` when it sits next to this repo. The distribution predates the current house
-structures: there is no `LICENSE` file, so `dzil build` aborts, there is no CI, the POD
-is malformed and the README names a middleware class that does not exist. The known gaps
-are tracked on the internal board.
+The middleware works and the suite is green (`prove -lr t/`; `dzil test` is the
+release-path run). `WWW::Zitadel` has to be installed for the suite to load. The tests
+run against the installed `WWW::Zitadel`; a sibling checkout joins `@INC` only when
+`PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB` points at its `lib/`. The distribution
+carries a committed `LICENSE`, a `Changes` file, a README whose usage example a test
+runs, valid POD (`t/02-pod.t`) and a GitHub Actions workflow (`.github/workflows/ci.yml`)
+that runs `dzil test` on Perl 5.36, 5.38 and 5.40.

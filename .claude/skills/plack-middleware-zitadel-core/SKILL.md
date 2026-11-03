@@ -25,6 +25,8 @@ caching, key rotation or the issuer discovery belongs over there.
 | `examples/deploy-k8s-proxy.sh` | applies the manifests |
 | `t/00-load.t` | load test |
 | `t/01-auth.t` | the behaviour tests, one `Local::OIDC` fake |
+| `t/02-pod.t` | POD syntax check |
+| `t/03-readme.t` | runs the README usage example |
 
 ## The request path
 
@@ -51,21 +53,24 @@ caching, key rotation or the issuer discovery belongs over there.
 | a required scope is missing | 403 | `insufficient_scope` | `required scopes are missing` |
 
 Every failure answers with a JSON body `{error, error_description}` and
-`Content-Type: application/json`. The 401 additionally carries the challenge
-header; the 403 does not (that is pinned by a test — see Traps).
+`Content-Type: application/json`. The 401 carries the challenge header; the 403 carries it as well, with the realm and
+the required scopes in a `scope` attribute.
 
 ## The challenge
 
-The 401 header is built by one `sprintf`:
+The challenge is built by `_challenge`:
 
 ```
 Bearer realm="<realm>", error="<error>", error_description="<description>"
 ```
 
-`realm` defaults to `api`. The description is the verbatim text of the
-verification error — for the real sibling that is the stringified
-`WWW::Zitadel::Error`, which overloads `""` to its message. The middleware only
-strips **trailing** whitespace (`s/\s+\z//`); leading whitespace survives.
+The 403 appends `, scope="<required scopes, space-separated>"`. `realm` defaults to
+`api`. The description is the text of the verification error — for the real sibling
+that is the stringified `WWW::Zitadel::Error`, which overloads `""` to its message.
+The middleware strips **trailing** whitespace (`s/\s+\z//`); leading whitespace
+survives. `_quote` makes every value safe for the header: control characters become a
+space, non-ASCII becomes `?`, quotes and backslashes are backslash-escaped. The JSON
+body keeps the original text.
 
 ## The attributes
 
@@ -117,48 +122,28 @@ how the audience handling is pinned.
 
 ## Traps
 
-- **The POD is broken.** Its headings are lower case (`=synopsis`,
-  `=description`, `=attr`); `podchecker` reports 8 errors, and the author test
-  the `[@Author::GETTY]` bundle adds (`xt/author/pod-syntax.t`) is red over it.
-  The release path fails until that is fixed.
-- **The README enables a class that does not exist**:
-  `enable 'Plack::Middleware::Zitadel::Auth'`. The class is
-  `Plack::Middleware::Zitadel`; the example as written dies at startup.
-- **`error_description` is not escaped** in the challenge header. A die message
-  with a double quote or a newline breaks the quoted string — a remote library
-  controls that text.
-- **The 403 has no `WWW-Authenticate` header**, although RFC 6750 expects the
-  challenge to carry the `scope` attribute. `t/01-auth.t` pins the current
-  behaviour (`ok !$missing_res->header('WWW-Authenticate')`) — changing it means
-  changing the test on purpose.
 - **The `empty bearer token` branch is unreachable** through the header path:
   the regex needs at least one character, so `"Bearer  "` yields the single
   space as token.
-- **The tests pull in an out-of-repo checkout**: both test files prepend
-  `$FindBin::Bin/../../p5-www-zitadel/lib` to `@INC` when that directory
-  exists. Locally the sibling checkout wins over the installed module; on a
-  machine without the checkout the path silently disappears and a different
-  version is tested.
-- **No `LICENSE`** — `[@Author::GETTY/LicenseFile]` aborts `dzil build`; the
-  bundle gathers files through Git, so the file has to be committed.
-- **No CI workflow** — the tests only run locally.
-- **The cpanfile pins no minimum versions**, and `WWW::Zitadel` — a hard
-  runtime dependency — is declared without one.
-- **The deploy script is tied to one machine**: the default kubeconfig path is
-  a personal absolute path, and the script prints an internal hostname.
-- `WWW::Zitadel` has to be installed for the suite to load; without it the
-  middleware cannot even be loaded.
+- **The 403 challenge is pinned** by `t/01-auth.t` ('403 challenge carries realm and
+  scope'); changing it means changing the test on purpose.
+- **The tests run against the installed `WWW::Zitadel`.** A sibling checkout joins
+  `@INC` only when `PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB` is set; `t/00-load.t`
+  checks that nothing else puts it there.
+- **`WWW::Zitadel`** is a hard runtime dependency; without it the middleware cannot
+  be loaded.
+- **The deploy script** `examples/deploy-k8s-proxy.sh` uses placeholders: kubeconfig
+  defaults to `~/.kube/config` (`KUBECONFIG_PATH`), namespace from `NAMESPACE`; the
+  manifests under `examples/k8s/` carry placeholders for issuer, upstream, image,
+  hostname and gateway.
 
 ## Tests
 
-`t/00-load.t` — one load test. `t/01-auth.t` — nine subtests: `prepare_app`
+`t/00-load.t` — load test. `t/01-auth.t` — the behaviour subtests: `prepare_app`
 validates config, Bearer extraction, verification failure, audience handling,
-`required_scopes` as arrayref, `required_scopes` as string, env injection,
-custom `claims_env_key` and `realm`, and the challenge format.
-
-Not covered today: a die message that contains a quote or a newline, a Bearer
-value of only whitespace, the env staying clean on the 403 path, and the
-`realm` in any path other than the default one.
+`required_scopes` as arrayref and as string, env injection, custom `claims_env_key`
+and `realm`, the challenge format, the escaping of the error text and the 403
+challenge. `t/02-pod.t` — POD syntax. `t/03-readme.t` — the README example runs.
 
 ## Vocabulary
 

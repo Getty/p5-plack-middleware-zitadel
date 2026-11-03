@@ -48,12 +48,11 @@ in the same edit.
 
 The error text of the verification library ends up verbatim in the challenge and in
 the JSON body — the middleware passes a remote message on to the client. That is part
-of the contract today, and it is also why the header format has to be exact: what
-goes into a quoted string has to be escaped, and no line break may reach the header.
+of the contract, and it is why the header format is exact: what goes into a quoted
+string is escaped (`_quote`), and no line break reaches the header.
 
-The POD is currently broken (its headings are written in lower case, so the
-formatters reject them) and the README names a middleware class that does not exist.
-Both are on the board; do not paper over them with prose — fix the code.
+The POD and the README usage example are covered by tests (`t/02-pod.t`,
+`t/03-readme.t`); a change to either keeps them green.
 
 ## Verification
 
@@ -62,6 +61,7 @@ prove -lr t/     # everything
 dzil test        # the release-path run
 ```
 
-`WWW::Zitadel` must be installed for the suite to load. A behavioural change — a
+`WWW::Zitadel` must be installed for the suite to load; a sibling checkout joins `@INC`
+through `PLACK_MIDDLEWARE_ZITADEL_WWW_ZITADEL_LIB`. A behavioural change — a
 different status code, a different challenge, a different scope decision, a different
 env key — needs a test that pins it. Never weaken a check to make a test pass.

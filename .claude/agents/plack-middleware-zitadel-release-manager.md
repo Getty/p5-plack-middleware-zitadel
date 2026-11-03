@@ -37,25 +37,22 @@ and note the other as still open — do not merge them silently.
 Before a release, walk the five points and report each one:
 
 1. **dist.ini** — `[@Author::GETTY]`, name `Plack-Middleware-Zitadel`, author
-   Torsten Raudssus, licence `Perl_5`. The version comes from the module: the last
-   release in this repo's history is `0.010`, the module carries `0.011`. The next
-   release is `0.011` — never copied back from CPAN, never guessed from the
-   `Changes` file.
+   Torsten Raudssus, licence `Perl_5`. The module carries `our $VERSION`; the bundle
+   writes it at release through `[RewriteVersion::Transitional]` and
+   `[BumpVersionAfterRelease]`. The version is never copied back from CPAN and never
+   guessed from the `Changes` file.
 2. **cpanfile** — the runtime set is `Plack`, `WWW::Zitadel`, `JSON::MaybeXS`; the
-   test set is `Test::More`, `Plack::Test`, `HTTP::Request::Common`. Every module the
-   code loads has to be in there, with a minimum version that matches what the code
-   uses. `WWW::Zitadel` is the sibling distribution — it must be declared, not assumed.
+   test set is `Test::More`, `Plack::Test`, `HTTP::Request::Common`. Prerequisites live in the `cpanfile` (read through `[Prereqs::FromCPANfile]`);
+   `dist.ini` carries the header and the bundle. Every module the code loads is in
+   there, with a minimum version that matches what the code uses. `WWW::Zitadel` is the sibling distribution — it must be declared, not assumed.
 3. **Changes** — the `{{$NEXT}}` section carries the user-visible effect of the
    release, one indented bullet per change. A release with an empty `{{$NEXT}}` is a
    release with nothing to say — either something changed or there is nothing to
    release.
-4. **LICENSE** — `[@Author::GETTY/LicenseFile]` aborts the build when no committed
-   `LICENSE` exists; the bundle gathers files through Git, so the file has to be in
-   the repository (`dzil genlicense`, then `git add LICENSE`). Not a build artefact.
-5. **`dzil build`** — has to run clean, including the author tests the bundle adds
-   (`xt/author/pod-syntax.t` and `xt/release/changes_has_content.t`). The POD of this
-   distribution currently does not survive `podchecker`; that fails the build and
-   therefore belongs on the board as a code fix, not as a note.
+4. **LICENSE** — the committed `LICENSE` is in the repository; the bundle gathers
+   files through Git. Not a build artefact.
+5. **`dzil build`** — runs clean, including the author tests the bundle adds
+   (`xt/author/pod-syntax.t` and `xt/release/changes_has_content.t`).
 
 **Never** `git push`, never create a tag, never run `dzil release`. Everything stays
 local until Getty says otherwise.
