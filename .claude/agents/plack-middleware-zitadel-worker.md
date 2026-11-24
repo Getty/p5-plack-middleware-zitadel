@@ -2,14 +2,13 @@
 name: plack-middleware-zitadel-worker
 description: "Default Plack-Middleware-Zitadel worker — implement, refactor, debug and test the Plack middleware in lib/Plack/Middleware/Zitadel.pm. It takes a Bearer token out of the Authorization header, verifies it via WWW::Zitadel::OIDC, checks the required scopes, injects the claims into the PSGI env and answers 401/403 per RFC 6750. Pre-loaded with the module's contracts and Getty's Perl conventions. Leaves a commit-ready tree; never commits — commits belong to plack-middleware-zitadel-release-manager."
 model: inherit
-briefing:
-  skills:
-    - plack-middleware-zitadel-core
-    - getty-perl-core
-    - getty-perl-pod
-    - www-zitadel-perl
-    - zitadel-general
-    - kanban-issues-karr-ticket
+skills:
+  - plack-middleware-zitadel-core
+  - getty-perl-core
+  - getty-perl-pod
+  - www-zitadel-perl
+  - zitadel-general
+  - kanban-issues-karr-ticket
 ---
 
 You are the plack-middleware-zitadel-worker for **Plack-Middleware-Zitadel**, a Perl

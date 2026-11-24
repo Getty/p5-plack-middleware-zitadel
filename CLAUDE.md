@@ -26,7 +26,7 @@ lane boundaries are in `.claude/rules/plack-middleware-zitadel-rules.md`.
 | Implement / refactor / debug behavior-relevant code | `plack-middleware-zitadel-worker` (default) |
 | Commits, `Changes`, card → done, pre-release audit | `plack-middleware-zitadel-release-manager` |
 
-The agents carry their skills via `briefing.skills` (see `.claude/agents/`); the main
+The agents carry their skills via `skills:` (see `.claude/agents/`); the main
 agent delegates rather than loading them. Skill sources live under `.claude/skills/` —
 `getty-perl-core`, `getty-perl-pod`, `www-zitadel-perl`, `zitadel-general` and the
 karr skills are installed from the shared sources; `plack-middleware-zitadel-core` is
